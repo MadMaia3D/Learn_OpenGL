@@ -3,18 +3,17 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "shader_utils.h"
-
+#include <math.h>
 
 
 float vertices[] = {
-     0.5f,  0.5f, 0.0f,  // top right
-     0.5f, -0.5f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f   // top left 
+    // positions            // colors
+     0.0f,  0.5f, 0.0f,     1.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f,
+    -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 1.0f
 };
-unsigned int indices[] = {  // note that we start from 0!
-    0, 1, 3,   // first triangle
-    1, 2, 3    // second triangle
+unsigned int indices[] = {
+    0, 1, 2
 };
 
 
@@ -67,25 +66,25 @@ int main(void) {
 
     // ------------------------- Program Shader -------------------------
 
-    unsigned shader_program_id;
-    CreateShaderProgram(&shader_program_id, "src/shaders/basic_vertex_shader.glsl", "src/shaders/basic_fragment_shader.glsl");
+    unsigned shaderProgram;
+    CreateShaderProgram(&shaderProgram, "src/shaders/color_shader_vertex.glsl", "src/shaders/color_shader_fragment.glsl");
 
     // ------------------------- VAO (Vertex Array Object -------------------------
-    // holds the current configuration for the mesh and shader
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
     // ------------------------- VBO (Vertex Buffer Object) -------------------------
-    // holds vertex data
     unsigned int VBO;
     glGenBuffers(1, &VBO);
-    // 0. copy our vertices array in a buffer for OpenGL to use
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // 1. then set the vertex attributes pointers
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     // ------------------------- EBO (Element Buffer Object) -------------------------
     unsigned int EBO;
@@ -96,16 +95,23 @@ int main(void) {
     (GL_FRONT_AND_BACK, GL_FILL);
 
     // ------------------------- MAIN LOOP -------------------------
+    int vertexColorLocation = glGetUniformLocation(shaderProgram, "time");
+    
     while (!glfwWindowShouldClose(window)) {
         ProcessInput(window);
-
+        float time = glfwGetTime();
+        
         glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+        
+        glUseProgram(shaderProgram);
+        const float shader_evolution = cos(time * 2) / 2.0f + 0.5f;
+        glUniform1f(vertexColorLocation, shader_evolution);
 
-        glUseProgram(shader_program_id);
         glBindVertexArray(VAO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
