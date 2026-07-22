@@ -3,16 +3,20 @@
 #include <math.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "shader_utils.h"
 #include "texture_utils.h"
+#include "math_utils.h"
 
 
 float vertices[] = {
-    // positions           // tex_coords    // colors        
-    -0.5f,  0.5f, 0.0f,    0.0f, 1.0f,      1.0f, 0.0f, 0.0f,
-     0.5f,  0.5f, 0.0f,    1.0f, 1.0f,      0.0f, 1.0f, 0.0f,
-     0.5f, -0.5f, 0.0f,    1.0f, 0.0f,      1.0f, 1.0f, 0.0f,
-    -0.5f, -0.5f, 0.0f,    0.0f, 0.0f,      0.0f, 0.0f, 1.0f,
+    // positions           // tex_coords
+    -0.5f,  0.5f, 0.0f,    0.0f, 1.0f,  
+     0.5f,  0.5f, 0.0f,    1.0f, 1.0f,  
+     0.5f, -0.5f, 0.0f,    1.0f, 0.0f,  
+    -0.5f, -0.5f, 0.0f,    0.0f, 0.0f,  
 };
 
 
@@ -72,7 +76,7 @@ int main(void) {
     // ------------------------- Program Shader -------------------------
 
     unsigned shaderProgram;
-    CreateShaderProgram(&shaderProgram, "src/shaders/color_shader_vertex.glsl", "src/shaders/color_shader_fragment.glsl");
+    CreateShaderProgram(&shaderProgram, "src/shaders/transformation_shader_vertex.glsl", "src/shaders/transformation_shader_fragment.glsl");
 
     // ------------------------- VAO (Vertex Array Object -------------------------
     unsigned int VAO;
@@ -85,14 +89,11 @@ int main(void) {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
     // tex_coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-    // color attribute
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(5 * sizeof(float)));
-    glEnableVertexAttribArray(2);
 
     // ------------------------- EBO (Element Buffer Object) -------------------------
     unsigned int EBO;
@@ -120,20 +121,30 @@ int main(void) {
     int sampler2D_location_1 = glGetUniformLocation(shaderProgram, "texture1");
     glUniform1i(sampler2D_location_0, 0);
     glUniform1i(sampler2D_location_1, 1);
-
+    
     // ------------------------- MAIN LOOP -------------------------
     
     while (!glfwWindowShouldClose(window)) {
         ProcessInput(window);
         
+        float time = glfwGetTime();
+        // ------------------------- TRANSFORMATION -------------------------
+        float scale = remap(sin(time), -1.0f, 1.0f, 0.2f, 0.7f);
+        glm::mat4 transformation = glm::mat4(1.0f);
+        transformation = glm::translate(transformation, glm::vec3(-0.4f, 0.4f, 0.0f));
+        transformation = glm::rotate(transformation, glm::radians(time * -15.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        transformation = glm::scale(transformation, glm::vec3(scale, scale, scale));
+        int uniform_location = glGetUniformLocation(shaderProgram, "transformationIn");
+        glUniformMatrix4fv(uniform_location, 1, false, glm::value_ptr(transformation));
+        
+        // ------------------------- CLEAR BUFFER -------------------------
         glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         
+        // ------------------------- RENDER MESH -------------------------
         glUseProgram(shaderProgram);
-
         glBindVertexArray(VAO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
