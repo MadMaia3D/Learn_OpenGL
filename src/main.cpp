@@ -12,17 +12,61 @@
 
 
 float vertices[] = {
-    // positions           // tex_coords
-    -0.5f,  0.5f, 0.0f,    0.0f, 1.0f,  
-     0.5f,  0.5f, 0.0f,    1.0f, 1.0f,  
-     0.5f, -0.5f, 0.0f,    1.0f, 0.0f,  
-    -0.5f, -0.5f, 0.0f,    0.0f, 0.0f,  
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 
 
-unsigned int indices[] = {
-    0, 1, 2,
-    0, 2, 3,
+glm::vec3 cubePositions[] = {
+    glm::vec3(0.0f,  0.0f,  0.0f),
+    glm::vec3(2.0f,  5.0f, -15.0f),
+    glm::vec3(-1.5f, -2.2f, -2.5f),
+    glm::vec3(-3.8f, -2.0f, -12.3f),
+    glm::vec3(2.4f, -0.4f, -3.5f),
+    glm::vec3(-1.7f,  3.0f, -7.5f),
+    glm::vec3(1.3f, -2.0f, -2.5f),
+    glm::vec3(1.5f,  2.0f, -2.5f),
+    glm::vec3(1.5f,  0.2f, -1.5f),
+    glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
 
@@ -54,7 +98,9 @@ int main(void) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+    int window_width = 800;
+    int window_height = 600;
+    GLFWwindow *window = glfwCreateWindow(window_width, window_height, "LearnOpenGL", NULL, NULL);
     if (window == NULL) {
         printf("Failed to create GLFW window\n");
         glfwTerminate();
@@ -69,14 +115,13 @@ int main(void) {
         return -1;
     }
 
-    glViewport(0, 0, 800, 600);
+    glViewport(0, 0, window_width, window_height);
 
     glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
 
     // ------------------------- Program Shader -------------------------
-
     unsigned shaderProgram;
-    CreateShaderProgram(&shaderProgram, "src/shaders/transformation_shader_vertex.glsl", "src/shaders/transformation_shader_fragment.glsl");
+    CreateShaderProgram(&shaderProgram, "src/shaders/coord_shader_vertex.glsl", "src/shaders/coord_shader_fragment.glsl");
 
     // ------------------------- VAO (Vertex Array Object -------------------------
     unsigned int VAO;
@@ -95,57 +140,68 @@ int main(void) {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    // ------------------------- EBO (Element Buffer Object) -------------------------
-    unsigned int EBO;
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    
-    (GL_FRONT_AND_BACK, GL_FILL);
     // ------------------------- TEXTURE -------------------------
     glUseProgram(shaderProgram);
+    glActiveTexture(GL_TEXTURE0);
+    unsigned int texture0;
+    LoadTexture2D(&texture0, "textures/crate1_diffuse.png", false, true);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
-    glActiveTexture(GL_TEXTURE0);
-    unsigned int texture0;
-    LoadTexture2D(&texture0, "textures/crate1_diffuse.png", false, true);
-    
+
     glActiveTexture(GL_TEXTURE1);
     unsigned int texture1;
     LoadTexture2D(&texture1, "textures/awesomeface.png", true, true);
-    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
     int sampler2D_location_0 = glGetUniformLocation(shaderProgram, "texture0");
     int sampler2D_location_1 = glGetUniformLocation(shaderProgram, "texture1");
     glUniform1i(sampler2D_location_0, 0);
     glUniform1i(sampler2D_location_1, 1);
-    
+
     // ------------------------- MAIN LOOP -------------------------
-    
+
+    glEnable(GL_DEPTH_TEST);
     while (!glfwWindowShouldClose(window)) {
         ProcessInput(window);
-        
-        float time = glfwGetTime();
-        // ------------------------- TRANSFORMATION -------------------------
-        float scale = remap(sin(time), -1.0f, 1.0f, 0.2f, 0.7f);
-        glm::mat4 transformation = glm::mat4(1.0f);
-        transformation = glm::translate(transformation, glm::vec3(-0.4f, 0.4f, 0.0f));
-        transformation = glm::rotate(transformation, glm::radians(time * -15.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        transformation = glm::scale(transformation, glm::vec3(scale, scale, scale));
-        int uniform_location = glGetUniformLocation(shaderProgram, "transformationIn");
-        glUniformMatrix4fv(uniform_location, 1, false, glm::value_ptr(transformation));
-        
-        // ------------------------- CLEAR BUFFER -------------------------
+
         glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        
-        // ------------------------- RENDER MESH -------------------------
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        float time = glfwGetTime();
+
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        int nCubes = sizeof(cubePositions) / sizeof(cubePositions[0]);
+        // ------------------------- TRANSFORMATION TO SHADER -------------------------
+        for (int i = 0; i < nCubes; i++) {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            float angle = 20.0f * i + time * 5.0f;
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+
+            glm::mat4 view = glm::mat4(1.0f);
+            view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+            float aspect_ratio = (float)window_width / window_height;
+            glm::mat4 proj = glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 100.0f);
+
+            int uniform_location = glGetUniformLocation(shaderProgram, "model");
+            glUniformMatrix4fv(uniform_location, 1, false, glm::value_ptr(model));
+
+            uniform_location = glGetUniformLocation(shaderProgram, "view");
+            glUniformMatrix4fv(uniform_location, 1, false, glm::value_ptr(view));
+
+            uniform_location = glGetUniformLocation(shaderProgram, "projection");
+            glUniformMatrix4fv(uniform_location, 1, false, glm::value_ptr(proj));
+
+            // ------------------------- RENDER CUBE -------------------------
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
