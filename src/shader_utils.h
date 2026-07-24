@@ -3,6 +3,11 @@
 #include <glad/glad.h>
 
 
+typedef struct Program {
+    unsigned int id;
+} Program;
+
+
 bool CreateAndCompileShader(GLenum type, unsigned int *shader_id, const char *path) {
     // Open shader file
     FILE *file;
@@ -57,7 +62,7 @@ bool CreateAndCompileShader(GLenum type, unsigned int *shader_id, const char *pa
 }
 
 
-bool CreateShaderProgram(unsigned int *program, const char *vertex_shader_path, const char *fragment_shader_path) {
+bool CreateShaderProgram(Program *p, const char *vertex_shader_path, const char *fragment_shader_path) {
     unsigned int vertex_shader;
     CreateAndCompileShader(GL_VERTEX_SHADER, &vertex_shader, vertex_shader_path);
 
@@ -82,7 +87,26 @@ bool CreateShaderProgram(unsigned int *program, const char *vertex_shader_path, 
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
 
-    *program = shader_program;
+    p->id = shader_program;
 
     return true;
+}
+
+
+void UseProgram(Program p) {
+    glUseProgram(p.id);
+}
+
+
+void SetProgamUniformInt(Program *p, const char *uniform_name, int value) {
+    glUseProgram(p->id);
+    int uniform_location = glGetUniformLocation(p->id, uniform_name);
+    glUniform1i(uniform_location, value);
+}
+
+
+void SetProgamUniformMat4(Program *p, const char *uniform_name, const float *value) {
+    glUseProgram(p->id);
+    int uniform_location = glGetUniformLocation(p->id, uniform_name);
+    glUniformMatrix4fv(uniform_location, 1, false, value);
 }

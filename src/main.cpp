@@ -120,8 +120,8 @@ int main(void) {
     glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
 
     // ------------------------- Program Shader -------------------------
-    unsigned shaderProgram;
-    CreateShaderProgram(&shaderProgram, "src/shaders/coord_shader_vertex.glsl", "src/shaders/coord_shader_fragment.glsl");
+    Program shader_program;
+    CreateShaderProgram(&shader_program, "src/shaders/coord_shader_vertex.glsl", "src/shaders/coord_shader_fragment.glsl");
 
     // ------------------------- VAO (Vertex Array Object -------------------------
     unsigned int VAO;
@@ -141,27 +141,18 @@ int main(void) {
     glEnableVertexAttribArray(1);
 
     // ------------------------- TEXTURE -------------------------
-    glUseProgram(shaderProgram);
-    glActiveTexture(GL_TEXTURE0);
-    unsigned int texture0;
-    LoadTexture2D(&texture0, "textures/crate1_diffuse.png", false, true);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    Texture2D tex0;
+    LoadTexture2D(&tex0, 0, "textures/crate1_diffuse.png", false, true);
+    SetTexture2DWrap(&tex0, GL_REPEAT, GL_REPEAT);
+    SetTexture2DFiltering(&tex0, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 
-    glActiveTexture(GL_TEXTURE1);
-    unsigned int texture1;
-    LoadTexture2D(&texture1, "textures/awesomeface.png", true, true);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    Texture2D tex1;
+    LoadTexture2D(&tex1, 1, "textures/awesomeface.png", true, true);
+    SetTexture2DWrap(&tex1, GL_REPEAT, GL_REPEAT);
+    SetTexture2DFiltering(&tex1, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 
-    int sampler2D_location_0 = glGetUniformLocation(shaderProgram, "texture0");
-    int sampler2D_location_1 = glGetUniformLocation(shaderProgram, "texture1");
-    glUniform1i(sampler2D_location_0, 0);
-    glUniform1i(sampler2D_location_1, 1);
+    SetProgamUniformInt(&shader_program, "texture0", 0);
+    SetProgamUniformInt(&shader_program, "texture1", 1);
 
     // ------------------------- MAIN LOOP -------------------------
 
@@ -174,7 +165,7 @@ int main(void) {
 
         float time = glfwGetTime();
 
-        glUseProgram(shaderProgram);
+        UseProgram(shader_program);
         glBindVertexArray(VAO);
         int nCubes = sizeof(cubePositions) / sizeof(cubePositions[0]);
         // ------------------------- TRANSFORMATION TO SHADER -------------------------
@@ -190,14 +181,9 @@ int main(void) {
             float aspect_ratio = (float)window_width / window_height;
             glm::mat4 proj = glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 100.0f);
 
-            int uniform_location = glGetUniformLocation(shaderProgram, "model");
-            glUniformMatrix4fv(uniform_location, 1, false, glm::value_ptr(model));
-
-            uniform_location = glGetUniformLocation(shaderProgram, "view");
-            glUniformMatrix4fv(uniform_location, 1, false, glm::value_ptr(view));
-
-            uniform_location = glGetUniformLocation(shaderProgram, "projection");
-            glUniformMatrix4fv(uniform_location, 1, false, glm::value_ptr(proj));
+            SetProgamUniformMat4(&shader_program, "model", glm::value_ptr(model));
+            SetProgamUniformMat4(&shader_program, "view", glm::value_ptr(view));
+            SetProgamUniformMat4(&shader_program, "projection", glm::value_ptr(proj));
 
             // ------------------------- RENDER CUBE -------------------------
             glDrawArrays(GL_TRIANGLES, 0, 36);
