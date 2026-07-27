@@ -1,3 +1,7 @@
+#ifndef SHADER_UTILS_H
+#define SHADER_UTILS_H
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <glad/glad.h>
@@ -26,13 +30,13 @@ bool CreateAndCompileShader(GLenum type, unsigned int *shader_id, const char *pa
 
     // Create buffer to receive the file contents
     char *buffer = (char *)malloc(file_size + 1);
-    
+
     if (buffer == NULL) {
         printf("Memory allocation failed for shader: %s", path);
         fclose(file);
         return false;
     }
-    
+
     // Read Contents from file to the buffer
     size_t bytes_read = fread(buffer, 1, file_size, file);
     buffer[bytes_read] = '\0';
@@ -110,3 +114,6 @@ void SetProgamUniformMat4(Program *p, const char *uniform_name, const float *val
     int uniform_location = glGetUniformLocation(p->id, uniform_name);
     glUniformMatrix4fv(uniform_location, 1, false, value);
 }
+
+
+#endif

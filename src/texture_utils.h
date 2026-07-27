@@ -1,3 +1,7 @@
+#ifndef TEXTURE_UTILS_H
+#define TEXTURE_UTILS_H
+
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "STB/stb_image.h"
 #include <glad/glad.h>
@@ -59,3 +63,6 @@ void SetTexture2DFiltering(Texture2D *tex, GLint min_filter, GLint mag_filter) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
 }
+
+
+#endif
