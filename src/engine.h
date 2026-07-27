@@ -11,21 +11,27 @@
 
 #include "shader_utils.h"
 #include "texture_utils.h"
+#include "mouse.h"
 
 
 typedef struct {
     glm::vec3 position;
     glm::vec3 target;
+    
     float fov;
     float near;
     float far;
     float speed;
+
+    float yaw;
+    float pitch;
 } Camera3D;
 
 
 typedef struct {
     glm::vec4 bg_color;
     Camera3D camera;
+    Mouse mouse;
 
     unsigned int VAO;
     unsigned int VBO;
@@ -136,15 +142,14 @@ void SetupScene(GLFWwindow *window, SceneData *data) {
     data->camera.near = 0.1f;
     data->camera.far = 100.0f;
     data->camera.speed = 2.0f;
+    data->camera.yaw = glm::pi<float>();
     data->bg_color = { 0.2f, 0.3f, 0.4f, 1.0f };
-
-    // ------------------------- End -------------------------
-    glEnable(GL_DEPTH_TEST);
 }
 
 
 void ProcessInput(GLFWwindow *window, SceneData *scene, float delta_time) {
     Camera3D *camera = &scene->camera;
+    Mouse *mouse = &scene->mouse;
     glm::vec3 world_up(0.0f, 1.0f, 0.0f);
     glm::vec3 camera_z = glm::normalize(camera->position - camera->target);
     glm::vec3 camera_x = glm::cross(world_up, camera_z);
@@ -163,11 +168,18 @@ void ProcessInput(GLFWwindow *window, SceneData *scene, float delta_time) {
     if (glfwGetKey(window, GLFW_KEY_D)) {
         camera->position += camera_x * cam_speed * delta_time;
     }
-    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) {
-        camera->position -= camera_y * cam_speed * delta_time;
-    }
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
-        camera->position += camera_y * cam_speed * delta_time;
+        camera->position.y += cam_speed * delta_time;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) {
+        camera->position.y -= cam_speed * delta_time;
+    }
+
+    if (mouse->state == MOUSE_HOLD) {
+        float delta_x = mouse->last_x - mouse->x;
+        camera->yaw += delta_x * 0.002f;
+        float delta_y = mouse->last_y - mouse->y;
+        camera->pitch += delta_y * 0.002f;
     }
 }
 
@@ -176,17 +188,24 @@ void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
     int window_width, window_height;
     glfwGetFramebufferSize(window, &window_width, &window_height);
     float time = glfwGetTime();
-
-    ProcessInput(window, scene, delta_time);
-
+    
     // ------------------------- Camera -------------------------
     Camera3D *camera = &scene->camera;
     float aspect_ratio = (float)window_width / window_height;
     float fov = scene->camera.fov;
     float near = scene->camera.near;
     float far = scene->camera.far;
-
+    
     glm::vec3 world_up(0.0f, 1.0f, 0.0f);
+    
+    float yaw = camera->yaw;
+    float pitch = camera->pitch;
+    camera->target.x = sin(yaw) * cos(pitch);
+    camera->target.y = sin(pitch);
+    camera->target.z = cos(yaw) * cos(pitch);
+    camera->target += camera->position;
+    ProcessInput(window, scene, delta_time);
+
     glm::vec3 camera_z = glm::normalize(camera->position - camera->target);
     glm::vec3 camera_x = glm::cross(world_up, camera_z);
     glm::vec3 camera_y = glm::cross(camera_z, camera_x);

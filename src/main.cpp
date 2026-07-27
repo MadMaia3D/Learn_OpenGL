@@ -8,13 +8,17 @@ int main(void) {
     GLFWwindow *window;
     if (!CreateWindow(&window, "LearnOpenGL", 800, 600)) { return -1; }
 
-    SceneData scene;
+    SceneData scene = {};
     SetupScene(window, &scene);
 
     // ------------------------- MAIN LOOP -------------------------
+    glEnable(GL_DEPTH_TEST);
+
     float last_time = 0.0f;
+    
     while (!glfwWindowShouldClose(window)) {
         ProcessWindowInput(window);
+        UpdateMouse(window, &scene.mouse);
 
         glClearColor(scene.bg_color.r, scene.bg_color.g, scene.bg_color.b, scene.bg_color.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
