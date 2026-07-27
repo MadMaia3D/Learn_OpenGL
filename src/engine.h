@@ -152,7 +152,7 @@ void ProcessInput(GLFWwindow *window, SceneData *scene, float delta_time) {
     Mouse *mouse = &scene->mouse;
     glm::vec3 world_up(0.0f, 1.0f, 0.0f);
     glm::vec3 camera_z = glm::normalize(camera->position - camera->target);
-    glm::vec3 camera_x = glm::cross(world_up, camera_z);
+    glm::vec3 camera_x = glm::normalize(glm::cross(world_up, camera_z));
     glm::vec3 camera_y = glm::cross(camera_z, camera_x);
 
     float cam_speed = scene->camera.speed;
@@ -180,6 +180,7 @@ void ProcessInput(GLFWwindow *window, SceneData *scene, float delta_time) {
         camera->yaw += delta_x * 0.002f;
         float delta_y = mouse->last_y - mouse->y;
         camera->pitch += delta_y * 0.002f;
+        camera->pitch = glm::clamp(camera->pitch, glm::radians(-80.0f), glm::radians(80.0f));
     }
 }
 
