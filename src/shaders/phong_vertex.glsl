@@ -12,6 +12,7 @@ out vec3 position;
 out vec2 texCoord;
 out vec3 normal;
 
+
 void main() {
     gl_Position = projection * view * model * vec4(inPos, 1.0);
     

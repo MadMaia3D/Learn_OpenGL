@@ -196,9 +196,9 @@ void ProcessInput(GLFWwindow *window, SceneData *scene, float delta_time) {
 
     if (mouse->state == MOUSE_HOLD) {
         float delta_x = mouse->last_x - mouse->x;
-        camera->yaw += delta_x * 0.002f;
+        camera->yaw += delta_x * 0.004f;
         float delta_y = mouse->last_y - mouse->y;
-        camera->pitch += delta_y * 0.002f;
+        camera->pitch += delta_y * 0.004f;
         camera->pitch = glm::clamp(camera->pitch, glm::radians(-80.0f), glm::radians(80.0f));
     }
 }
@@ -245,6 +245,7 @@ void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
     SetProgamUniformMat4(&scene->crate_program, "projection", &proj);
     SetProgamUniformMat4(&scene->crate_program, "view", &look_at);
     SetProgamUniformVec3(&scene->crate_program, "light_position", &light_position);
+    SetProgamUniformVec3(&scene->crate_program, "camera_position", &camera->position);
     
     for (int i = 0; i < nCubes; i++) {
         // ------------------------- Transforms -------------------------
