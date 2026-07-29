@@ -148,8 +148,8 @@ void SetupScene(GLFWwindow *window, SceneData *data) {
     SetTexture2DWrap(&data->tex1, GL_REPEAT, GL_REPEAT);
     SetTexture2DFiltering(&data->tex1, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 
-    SetProgamUniformInt(&data->crate_program, "texture0", 0);
-    SetProgamUniformInt(&data->crate_program, "texture1", 1);
+    SetProgramUniformInt(&data->crate_program, "texture0", 0);
+    SetProgramUniformInt(&data->crate_program, "texture1", 1);
 
     // ------------------------- Camera -------------------------
     data->camera.position = { 0.0f, 0.0f, 3.0f };
@@ -242,10 +242,10 @@ void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
     
     glBindVertexArray(scene->VAO_crate);
     UseProgram(scene->crate_program);
-    SetProgamUniformMat4(&scene->crate_program, "projection", &proj);
-    SetProgamUniformMat4(&scene->crate_program, "view", &look_at);
-    SetProgamUniformVec3(&scene->crate_program, "light_position", &light_position);
-    SetProgamUniformVec3(&scene->crate_program, "camera_position", &camera->position);
+    SetProgramUniformMat4(&scene->crate_program, "projection", &proj);
+    SetProgramUniformMat4(&scene->crate_program, "view", &look_at);
+    SetProgramUniformVec3(&scene->crate_program, "light_position", &light_position);
+    SetProgramUniformVec3(&scene->crate_program, "camera_position", &camera->position);
     
     for (int i = 0; i < nCubes; i++) {
         // ------------------------- Transforms -------------------------
@@ -254,7 +254,7 @@ void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
         float angle = 20.0f * i + time * 5.0f;
         model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
         // ------------------------- Pass transforms to shader -------------------------
-        SetProgamUniformMat4(&scene->crate_program, "model", &model);
+        SetProgramUniformMat4(&scene->crate_program, "model", &model);
         // ------------------------- Render Cube -------------------------
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
@@ -266,9 +266,9 @@ void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
     model = glm::scale(model, glm::vec3(0.2f));
     
     UseProgram(scene->light_program);
-    SetProgamUniformMat4(&scene->light_program, "model", &model);
-    SetProgamUniformMat4(&scene->light_program, "view", &look_at);
-    SetProgamUniformMat4(&scene->light_program, "projection", &proj);
+    SetProgramUniformMat4(&scene->light_program, "model", &model);
+    SetProgramUniformMat4(&scene->light_program, "view", &look_at);
+    SetProgramUniformMat4(&scene->light_program, "projection", &proj);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
