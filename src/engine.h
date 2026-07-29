@@ -33,10 +33,14 @@ typedef struct {
     Camera3D camera;
     Mouse mouse;
 
-    unsigned int VAO;
-    unsigned int VBO;
+    glm::vec3 light_position;
 
-    Program shader_program;
+    unsigned int VBO_cube;
+    unsigned int VAO_crate;
+    unsigned int VAO_light;
+
+    Program crate_program;
+    Program light_program;
 
     Texture2D tex0;
     Texture2D tex1;
@@ -61,67 +65,79 @@ glm::vec3 cubePositions[] = {
 void SetupScene(GLFWwindow *window, SceneData *data) {
     // ------------------------- Vertex Data -------------------------
     float vertices[] = {
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+    //position            //uvs        //normals
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,  -0.0f, -0.0f, -1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,  -0.0f, -0.0f, -1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  -0.0f, -0.0f, -1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  -0.0f, -0.0f, -1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  -0.0f, -0.0f, -1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,  -0.0f, -0.0f, -1.0f,
 
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  -0.0f, -0.0f,  1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  -0.0f, -0.0f,  1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,  -0.0f, -0.0f,  1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,  -0.0f, -0.0f,  1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,  -0.0f, -0.0f,  1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  -0.0f, -0.0f,  1.0f,
 
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  -1.0f, -0.0f, -0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  -1.0f, -0.0f, -0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  -1.0f, -0.0f, -0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  -1.0f, -0.0f, -0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  -1.0f, -0.0f, -0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  -1.0f, -0.0f, -0.0f,
 
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,   1.0f, -0.0f, -0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,   1.0f, -0.0f, -0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,   1.0f, -0.0f, -0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,   1.0f, -0.0f, -0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,   1.0f, -0.0f, -0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,   1.0f, -0.0f, -0.0f,
 
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  -0.0f, -1.0f, -0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  -0.0f, -1.0f, -0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  -0.0f, -1.0f, -0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  -0.0f, -1.0f, -0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  -0.0f, -1.0f, -0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  -0.0f, -1.0f, -0.0f,
 
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  -0.0f,  1.0f, -0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  -0.0f,  1.0f, -0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  -0.0f,  1.0f, -0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  -0.0f,  1.0f, -0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,  -0.0f,  1.0f, -0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  -0.0f,  1.0f, -0.0f
     };
 
     // ------------------------- Program Shader -------------------------
-    CreateShaderProgram(&data->shader_program, "src/shaders/coord_shader_vertex.glsl", "src/shaders/coord_shader_fragment.glsl");
-    UseProgram(data->shader_program);
+    CreateShaderProgram(&data->crate_program, "src/shaders/phong_vertex.glsl", "src/shaders/phong_fragment.glsl");
+    CreateShaderProgram(&data->light_program, "src/shaders/light_vertex.glsl", "src/shaders/light_fragment.glsl");
 
-    // ------------------------- VAO (Vertex Array Object) -------------------------
-    glGenVertexArrays(1, &data->VAO);
-    glBindVertexArray(data->VAO);
-
-    // ------------------------- VBO (Vertex Buffer Object) -------------------------
-    glGenBuffers(1, &data->VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, data->VBO);
+    // ------------------------- Creates VAO and VBO -------------------------
+    glGenVertexArrays(1, &data->VAO_crate);
+    glBindVertexArray(data->VAO_crate);
+    
+    glGenBuffers(1, &data->VBO_cube);
+    glBindBuffer(GL_ARRAY_BUFFER, data->VBO_cube);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
     // tex_coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // normals attribute
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(5 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+    
+    // ------------------------- Light VAO and VBO -------------------------
+    glGenVertexArrays(1, &data->VAO_light);
+    glBindVertexArray(data->VAO_light);
+
+    glBindBuffer(GL_ARRAY_BUFFER, data->VBO_cube);
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
 
     // ------------------------- Texture -------------------------
     LoadTexture2D(&data->tex0, 0, "textures/crate1_diffuse.png", false, true);
@@ -132,8 +148,8 @@ void SetupScene(GLFWwindow *window, SceneData *data) {
     SetTexture2DWrap(&data->tex1, GL_REPEAT, GL_REPEAT);
     SetTexture2DFiltering(&data->tex1, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 
-    SetProgamUniformInt(&data->shader_program, "texture0", 0);
-    SetProgamUniformInt(&data->shader_program, "texture1", 1);
+    SetProgamUniformInt(&data->crate_program, "texture0", 0);
+    SetProgamUniformInt(&data->crate_program, "texture1", 1);
 
     // ------------------------- Camera -------------------------
     data->camera.position = { 0.0f, 0.0f, 3.0f };
@@ -141,9 +157,12 @@ void SetupScene(GLFWwindow *window, SceneData *data) {
     data->camera.fov = 90.0f;
     data->camera.near = 0.1f;
     data->camera.far = 100.0f;
-    data->camera.speed = 2.0f;
+    data->camera.speed = 5.0f;
     data->camera.yaw = glm::pi<float>();
     data->bg_color = { 0.2f, 0.3f, 0.4f, 1.0f };
+
+    // ------------------------- Light -------------------------
+    data->light_position = {3.0f, 2.0f, 3.0f};
 }
 
 
@@ -211,31 +230,45 @@ void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
     glm::vec3 camera_x = glm::cross(world_up, camera_z);
     glm::vec3 camera_y = glm::cross(camera_z, camera_x);
     glm::mat4 look_at = glm::lookAt(camera->position, camera->target, glm::vec3(0.0, 1.0, 0.0));
-
-    // ------------------------- View Matrix -------------------------
-    glm::mat4 view = glm::mat4(1.0f);
-    view = glm::translate(view, -scene->camera.position);
     
     // ------------------------- Proj Matrix -------------------------
     glm::mat4 proj = glm::perspective(glm::radians(fov / 2), aspect_ratio, near, far);
-    SetProgamUniformMat4(&scene->shader_program, "projection", glm::value_ptr(proj));
 
+    // ------------------------- Light Transformation -------------------------
+    glm::vec3 light_position = glm::vec3(cos(time/2), 0.5f, sin(time/2)) * 8.0f;
+    light_position.z -= 3.0f;
+    
     int nCubes = sizeof(cubePositions) / sizeof(cubePositions[0]);
-
+    
+    glBindVertexArray(scene->VAO_crate);
+    UseProgram(scene->crate_program);
+    SetProgamUniformMat4(&scene->crate_program, "projection", &proj);
+    SetProgamUniformMat4(&scene->crate_program, "view", &look_at);
+    SetProgamUniformVec3(&scene->crate_program, "light_position", &light_position);
+    
     for (int i = 0; i < nCubes; i++) {
         // ------------------------- Transforms -------------------------
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, cubePositions[i]);
         float angle = 20.0f * i + time * 5.0f;
         model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-
         // ------------------------- Pass transforms to shader -------------------------
-        SetProgamUniformMat4(&scene->shader_program, "model", glm::value_ptr(model));
-        SetProgamUniformMat4(&scene->shader_program, "view", glm::value_ptr(look_at));
-
-        // ------------------------- Render cube -------------------------
+        SetProgamUniformMat4(&scene->crate_program, "model", &model);
+        // ------------------------- Render Cube -------------------------
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
+    
+    // ------------------------- Render Light -------------------------
+    glBindVertexArray(scene->VAO_light);
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, light_position);
+    model = glm::scale(model, glm::vec3(0.2f));
+    
+    UseProgram(scene->light_program);
+    SetProgamUniformMat4(&scene->light_program, "model", &model);
+    SetProgamUniformMat4(&scene->light_program, "view", &look_at);
+    SetProgamUniformMat4(&scene->light_program, "projection", &proj);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 

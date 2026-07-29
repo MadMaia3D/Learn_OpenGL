@@ -102,17 +102,24 @@ void UseProgram(Program p) {
 }
 
 
-void SetProgamUniformInt(Program *p, const char *uniform_name, int value) {
+void SetProgamUniformInt(const Program *p, const char *uniform_name, int value) {
     glUseProgram(p->id);
     int uniform_location = glGetUniformLocation(p->id, uniform_name);
     glUniform1i(uniform_location, value);
 }
 
 
-void SetProgamUniformMat4(Program *p, const char *uniform_name, const float *value) {
+void SetProgamUniformVec3(const Program *p, const char *uniform_name, const glm::vec3 *vector) {
     glUseProgram(p->id);
     int uniform_location = glGetUniformLocation(p->id, uniform_name);
-    glUniformMatrix4fv(uniform_location, 1, false, value);
+    glUniform3fv(uniform_location, 1, glm::value_ptr(*vector));
+}
+
+
+void SetProgamUniformMat4(const Program *p, const char *uniform_name, const glm::mat4 *matrix) {
+    glUseProgram(p->id);
+    int uniform_location = glGetUniformLocation(p->id, uniform_name);
+    glUniformMatrix4fv(uniform_location, 1, false, glm::value_ptr(*matrix));
 }
 
 
