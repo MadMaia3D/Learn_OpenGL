@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <glad/glad.h>
 
+#include "light.h"
+#include "material.h"
+
 
 typedef struct Program {
     unsigned int id;
@@ -108,6 +111,12 @@ void SetProgramUniformInt(const Program *p, const char *uniform_name, int value)
     glUniform1i(uniform_location, value);
 }
 
+void SetProgramUniformFloat(const Program *p, const char *uniform_name, float value) {
+    glUseProgram(p->id);
+    int uniform_location = glGetUniformLocation(p->id, uniform_name);
+    glUniform1f(uniform_location, value);
+}
+
 
 void SetProgramUniformVec3(const Program *p, const char *uniform_name, const glm::vec3 *vector) {
     glUseProgram(p->id);
@@ -120,6 +129,21 @@ void SetProgramUniformMat4(const Program *p, const char *uniform_name, const glm
     glUseProgram(p->id);
     int uniform_location = glGetUniformLocation(p->id, uniform_name);
     glUniformMatrix4fv(uniform_location, 1, false, glm::value_ptr(*matrix));
+}
+
+
+void SetProgramUniformMaterial(const Program *p, const Material *mat) {
+    SetProgramUniformVec3(p, "material.ambient", &mat->ambient);
+    SetProgramUniformVec3(p, "material.diffuse", &mat->diffuse);
+    SetProgramUniformVec3(p, "material.specular", &mat->specular);
+    SetProgramUniformFloat(p, "material.shininess", mat->shininess);
+}
+
+
+void SetProgramUniformLight(const Program *p, const Light *light) {
+    SetProgramUniformVec3(p, "light.position", &light->position);
+    SetProgramUniformFloat(p, "light.intensity", light->intensity);
+    SetProgramUniformVec3(p, "light.color", &light->color);
 }
 
 

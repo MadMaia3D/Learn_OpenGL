@@ -12,20 +12,9 @@
 #include "shader_utils.h"
 #include "texture_utils.h"
 #include "mouse.h"
-
-
-typedef struct {
-    glm::vec3 position;
-    glm::vec3 target;
-    
-    float fov;
-    float near;
-    float far;
-    float speed;
-
-    float yaw;
-    float pitch;
-} Camera3D;
+#include "camera.h"
+#include "light.h"
+#include "material.h"
 
 
 typedef struct {
@@ -33,7 +22,8 @@ typedef struct {
     Camera3D camera;
     Mouse mouse;
 
-    glm::vec3 light_position;
+    Light light;
+    Material material;
 
     unsigned int VBO_cube;
     unsigned int VAO_crate;
@@ -62,7 +52,7 @@ glm::vec3 cubePositions[] = {
 };
 
 
-void SetupScene(GLFWwindow *window, SceneData *data) {
+void SetupScene(GLFWwindow *window, SceneData *scene) {
     // ------------------------- Vertex Data -------------------------
     float vertices[] = {
     //position            //uvs        //normals
@@ -110,59 +100,54 @@ void SetupScene(GLFWwindow *window, SceneData *data) {
     };
 
     // ------------------------- Program Shader -------------------------
-    CreateShaderProgram(&data->crate_program, "src/shaders/phong_vertex.glsl", "src/shaders/phong_fragment.glsl");
-    CreateShaderProgram(&data->light_program, "src/shaders/light_vertex.glsl", "src/shaders/light_fragment.glsl");
+    CreateShaderProgram(&scene->crate_program, "src/shaders/phong_vertex.glsl", "src/shaders/phong_fragment.glsl");
+    CreateShaderProgram(&scene->light_program, "src/shaders/light_vertex.glsl", "src/shaders/light_fragment.glsl");
 
     // ------------------------- Creates VAO and VBO -------------------------
-    glGenVertexArrays(1, &data->VAO_crate);
-    glBindVertexArray(data->VAO_crate);
+    glGenVertexArrays(1, &scene->VAO_crate);
+    glBindVertexArray(scene->VAO_crate);
     
-    glGenBuffers(1, &data->VBO_cube);
-    glBindBuffer(GL_ARRAY_BUFFER, data->VBO_cube);
+    glGenBuffers(1, &scene->VBO_cube);
+    glBindBuffer(GL_ARRAY_BUFFER, scene->VBO_cube);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    // tex_coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
     // normals attribute
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(5 * sizeof(float)));
-    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(5 * sizeof(float)));
+    glEnableVertexAttribArray(1);
     
     // ------------------------- Light VAO and VBO -------------------------
-    glGenVertexArrays(1, &data->VAO_light);
-    glBindVertexArray(data->VAO_light);
+    glGenVertexArrays(1, &scene->VAO_light);
+    glBindVertexArray(scene->VAO_light);
 
-    glBindBuffer(GL_ARRAY_BUFFER, data->VBO_cube);
+    glBindBuffer(GL_ARRAY_BUFFER, scene->VBO_cube);
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
-    // ------------------------- Texture -------------------------
-    LoadTexture2D(&data->tex0, 0, "textures/crate1_diffuse.png", false, true);
-    SetTexture2DWrap(&data->tex0, GL_REPEAT, GL_REPEAT);
-    SetTexture2DFiltering(&data->tex0, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-
-    LoadTexture2D(&data->tex1, 1, "textures/awesomeface.png", true, true);
-    SetTexture2DWrap(&data->tex1, GL_REPEAT, GL_REPEAT);
-    SetTexture2DFiltering(&data->tex1, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-
-    SetProgramUniformInt(&data->crate_program, "texture0", 0);
-    SetProgramUniformInt(&data->crate_program, "texture1", 1);
-
     // ------------------------- Camera -------------------------
-    data->camera.position = { 0.0f, 0.0f, 3.0f };
-    data->camera.target = { 0.0f, 0.0f, 0.0f };
-    data->camera.fov = 90.0f;
-    data->camera.near = 0.1f;
-    data->camera.far = 100.0f;
-    data->camera.speed = 5.0f;
-    data->camera.yaw = glm::pi<float>();
-    data->bg_color = { 0.2f, 0.3f, 0.4f, 1.0f };
+    scene->camera.position = { 0.0f, 0.0f, 3.0f };
+    scene->camera.target = { 0.0f, 0.0f, 0.0f };
+    scene->camera.fov = 90.0f;
+    scene->camera.near = 0.1f;
+    scene->camera.far = 100.0f;
+    scene->camera.speed = 5.0f;
+    scene->camera.yaw = glm::pi<float>();
+    scene->bg_color = { 0.2f, 0.3f, 0.4f, 1.0f };
 
-    // ------------------------- Light -------------------------
-    data->light_position = {3.0f, 2.0f, 3.0f};
+    // ------------------------- Look -------------------------
+    scene->light.position = {3.0f, 2.0f, 3.0f};
+    scene->light.intensity = 15.0f;
+    scene->light.color = {1.0f, 1.0f, 1.0f};
+
+    scene->material.ambient = glm::vec3(0.3f, 0.3f, 0.3f) * 0.1f;
+    scene->material.diffuse = {1.0f, 0.5f, 0.3f};
+    scene->material.specular = {0.5f, 0.5f, 0.5f};
+    scene->material.shininess = 50.0f;
+
+    SetProgramUniformMaterial(&scene->crate_program, &scene->material);
+    SetProgramUniformLight(&scene->crate_program, &scene->light);
 }
 
 
@@ -201,6 +186,13 @@ void ProcessInput(GLFWwindow *window, SceneData *scene, float delta_time) {
         camera->pitch += delta_y * 0.004f;
         camera->pitch = glm::clamp(camera->pitch, glm::radians(-80.0f), glm::radians(80.0f));
     }
+
+    float yaw = camera->yaw;
+    float pitch = camera->pitch;
+    camera->target.x = sin(yaw) * cos(pitch);
+    camera->target.y = sin(pitch);
+    camera->target.z = cos(yaw) * cos(pitch);
+    camera->target += camera->position;
 }
 
 
@@ -216,37 +208,20 @@ void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
     float near = scene->camera.near;
     float far = scene->camera.far;
     
-    glm::vec3 world_up(0.0f, 1.0f, 0.0f);
-    
-    float yaw = camera->yaw;
-    float pitch = camera->pitch;
-    camera->target.x = sin(yaw) * cos(pitch);
-    camera->target.y = sin(pitch);
-    camera->target.z = cos(yaw) * cos(pitch);
-    camera->target += camera->position;
     ProcessInput(window, scene, delta_time);
 
-    glm::vec3 camera_z = glm::normalize(camera->position - camera->target);
-    glm::vec3 camera_x = glm::cross(world_up, camera_z);
-    glm::vec3 camera_y = glm::cross(camera_z, camera_x);
-    glm::mat4 look_at = glm::lookAt(camera->position, camera->target, glm::vec3(0.0, 1.0, 0.0));
-    
-    // ------------------------- Proj Matrix -------------------------
-    glm::mat4 proj = glm::perspective(glm::radians(fov / 2), aspect_ratio, near, far);
+    glm::mat4 view_mat = glm::lookAt(camera->position, camera->target, glm::vec3(0.0, 1.0, 0.0));
+    glm::mat4 proj_mat = glm::perspective(glm::radians(fov / 2), aspect_ratio, near, far);
 
-    // ------------------------- Light Transformation -------------------------
-    glm::vec3 light_position = glm::vec3(cos(time/2), 0.5f, sin(time/2)) * 8.0f;
-    light_position.z -= 3.0f;
-    
-    int nCubes = sizeof(cubePositions) / sizeof(cubePositions[0]);
+    // ------------------------- Cubes -------------------------
     
     glBindVertexArray(scene->VAO_crate);
     UseProgram(scene->crate_program);
-    SetProgramUniformMat4(&scene->crate_program, "projection", &proj);
-    SetProgramUniformMat4(&scene->crate_program, "view", &look_at);
-    SetProgramUniformVec3(&scene->crate_program, "light_position", &light_position);
+    SetProgramUniformMat4(&scene->crate_program, "view", &view_mat);
+    SetProgramUniformMat4(&scene->crate_program, "projection", &proj_mat);
     SetProgramUniformVec3(&scene->crate_program, "camera_position", &camera->position);
     
+    int nCubes = sizeof(cubePositions) / sizeof(cubePositions[0]);
     for (int i = 0; i < nCubes; i++) {
         // ------------------------- Transforms -------------------------
         glm::mat4 model = glm::mat4(1.0f);
@@ -262,13 +237,13 @@ void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
     // ------------------------- Render Light -------------------------
     glBindVertexArray(scene->VAO_light);
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, light_position);
-    model = glm::scale(model, glm::vec3(0.2f));
+    model = glm::translate(model, scene->light.position);
+    model = glm::scale(model, glm::vec3(0.1f));
     
     UseProgram(scene->light_program);
     SetProgramUniformMat4(&scene->light_program, "model", &model);
-    SetProgramUniformMat4(&scene->light_program, "view", &look_at);
-    SetProgramUniformMat4(&scene->light_program, "projection", &proj);
+    SetProgramUniformMat4(&scene->light_program, "view", &view_mat);
+    SetProgramUniformMat4(&scene->light_program, "projection", &proj_mat);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 

@@ -1,53 +1,58 @@
 #version 330 core
 
-uniform sampler2D texture0;
-uniform sampler2D texture1;
+struct Material {
+   vec3 ambient;
+   vec3 diffuse;
+   vec3 specular;
+   float shininess;
+};
 
-uniform vec3 light_position;
+struct Light {
+   vec3 position;
+   vec3 color;
+   float intensity;
+};
+
 uniform vec3 camera_position;
+uniform Material material;
+uniform Light light;
 
 in vec3 position;
-in vec2 texCoord;
 in vec3 normal;
 
 out vec4 FragColor;
 
 
-void main() {
-   // albedo
-   vec4 crate = texture(texture0, texCoord);
-   vec4 face = texture(texture1, texCoord);
-   vec3 albedo = mix(crate.rgb, face.rgb, vec3(face.a * 0.7f));
+float CalculateDiffuseContribution(void) {
+   vec3 light_dir = normalize(light.position - position);
+   float light_direction_contribution = max( 0.0f, dot(normal, light_dir));
 
-   // ambient light
-   vec3 ambient_light_color = vec3(0.2f, 0.3f, 0.4f);
-   vec3 ambient_final_color = albedo * ambient_light_color;
- 
-   // light direction
-   vec3 direction_to_light = normalize(light_position - position);   // used for hightlight too
-   float light_direction_contribution = max( 0.0f, dot(normal, direction_to_light));
-
-   // light distance
-   float distance_to_light = length(light_position - position);
+   float distance_to_light = length(light.position - position);
    float squared_distance = pow(distance_to_light, 2.0f);
    float light_distance_contribution = 1.0f / max(squared_distance, 0.1f);
 
-   // light contribution
-   float light_intensity = 20.0f;
-   float light_final_contribution = light_distance_contribution * light_direction_contribution * light_intensity;
-   vec3 diffuse_final_color = albedo * light_final_contribution;
+   return light_distance_contribution * light_direction_contribution * light.intensity;
+}
 
-   // highlight
-   float highlight_intensity = 1.0f;
-   highlight_intensity = mix(0.2f, 1.0f, face.a);
-   float highlight_power = 150.0f;
-   highlight_power = mix(20.0f, 100.0f, face.a);
 
-   float highlight_occlusion = ceil(dot(direction_to_light, normal)); // backfacing faces should never have a highlight
-   vec3 reflected_light_ray = reflect(-direction_to_light, normal);
-   vec3 direction_to_camera = normalize(camera_position - position);
-   float highlight_dot = max(0.0f, dot(reflected_light_ray, direction_to_camera));
-   float highlight_contribution = pow(highlight_dot * highlight_occlusion, highlight_power) * highlight_intensity;
+float CalculateHighlightContribution(void) {
+   float highlight_power = material.shininess;
 
-   FragColor = vec4(ambient_final_color + diffuse_final_color + highlight_contribution, 1.0f);
+   vec3 light_dir = normalize(light.position - position);
+   float highlight_occlusion = ceil(dot(light_dir, normal));   // backfacing faces should never have a highlight
+   vec3 reflected_ray = reflect(-light_dir, normal);
+   vec3 view_direction = normalize(camera_position - position);
+
+   float highlight_dot = max(0.0f, dot(reflected_ray, view_direction));
+
+   return pow(highlight_dot * highlight_occlusion, highlight_power);
+}
+
+
+void main(void) {
+   vec3 ambient = material.ambient;
+   vec3 diffuse = CalculateDiffuseContribution() * material.diffuse * light.color;
+   vec3 highlight = CalculateHighlightContribution() * material.specular;
+ 
+   FragColor = vec4(ambient + diffuse + highlight, 1.0f);
 }
