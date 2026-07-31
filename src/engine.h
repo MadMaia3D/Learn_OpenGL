@@ -145,9 +145,6 @@ void SetupScene(GLFWwindow *window, SceneData *scene) {
     scene->material.diffuse = {1.0f, 0.5f, 0.3f};
     scene->material.specular = {0.5f, 0.5f, 0.5f};
     scene->material.shininess = 50.0f;
-
-    SetProgramUniformMaterial(&scene->crate_program, &scene->material);
-    SetProgramUniformLight(&scene->crate_program, &scene->light);
 }
 
 
@@ -178,7 +175,7 @@ void ProcessInput(GLFWwindow *window, SceneData *scene, float delta_time) {
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) {
         camera->position.y -= cam_speed * delta_time;
     }
-
+    
     if (mouse->state == MOUSE_HOLD) {
         float delta_x = mouse->last_x - mouse->x;
         camera->yaw += delta_x * 0.004f;
@@ -213,6 +210,9 @@ void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
     glm::mat4 view_mat = glm::lookAt(camera->position, camera->target, glm::vec3(0.0, 1.0, 0.0));
     glm::mat4 proj_mat = glm::perspective(glm::radians(fov / 2), aspect_ratio, near, far);
 
+    // ------------------------- Uniforms -------------------------
+    SetProgramUniformMaterial(&scene->crate_program, &scene->material);
+    SetProgramUniformLight(&scene->crate_program, &scene->light);
     // ------------------------- Cubes -------------------------
     
     glBindVertexArray(scene->VAO_crate);
