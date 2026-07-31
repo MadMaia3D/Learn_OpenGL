@@ -1,8 +1,9 @@
 #ifndef DEBBUGING_H
 #define DEBBUGING_H
 
-#include "engine.h"
 #include "imgui/unity_build_imgui.h"
+#include "glm/gtc/type_ptr.hpp"
+#include "engine.h"
 
 
 void ImguiDebug(SceneData *scene) {
@@ -12,7 +13,7 @@ void ImguiDebug(SceneData *scene) {
 
     ImGui::Begin("Debug");
 
-    ImGui::DragFloat("Light Position", &scene->light.intensity, 0.1f, 0.0f);
+    ImGui::DragFloat("Light Intensity", &scene->light.intensity, 0.1f, 0.0f);
     ImGui::DragFloat3("Light Position", glm::value_ptr(scene->light.position), 0.1f);
     ImGui::ColorEdit3("Light Color", glm::value_ptr(scene->light.color));
     ImGui::Separator();

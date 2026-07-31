@@ -10,8 +10,8 @@ typedef struct {
     glm::vec3 target;
 
     float fov;
-    float near;
-    float far;
+    float znear;
+    float zfar;
     float speed;
 
     float yaw;

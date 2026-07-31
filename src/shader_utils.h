@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <glad/glad.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "light.h"
 #include "material.h"
