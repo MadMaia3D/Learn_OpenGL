@@ -31,7 +31,7 @@ float CalculateDiffuseContribution(void) {
    float squared_distance = pow(distance_to_light, 2.0f);
    float light_distance_contribution = 1.0f / max(squared_distance, 0.1f);
 
-   return light_distance_contribution * light_direction_contribution * light.intensity;
+   return light_distance_contribution * light_direction_contribution;
 }
 
 
@@ -45,14 +45,18 @@ float CalculateHighlightContribution(void) {
 
    float highlight_dot = max(0.0f, dot(reflected_ray, view_direction));
 
-   return pow(highlight_dot * highlight_occlusion, highlight_power);
+   float distance_to_light = length(light.position - position);
+   float squared_distance = pow(distance_to_light, 2.0f);
+   float light_distance_contribution = 1.0f / max(squared_distance, 0.1f);
+
+   return pow(highlight_dot * highlight_occlusion, highlight_power) * light_distance_contribution;
 }
 
 
 void main(void) {
    vec3 ambient = material.ambient;
-   vec3 diffuse = CalculateDiffuseContribution() * material.diffuse * light.color;
-   vec3 highlight = CalculateHighlightContribution() * material.specular;
+   vec3 diffuse = CalculateDiffuseContribution() * material.diffuse * light.color * light.intensity;
+   vec3 highlight = CalculateHighlightContribution() * material.specular * light.intensity;
  
    FragColor = vec4(ambient + diffuse + highlight, 1.0f);
 }

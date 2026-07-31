@@ -2,7 +2,7 @@
 #include <math.h>
 #include "window.h"
 #include "engine.h"
-#include "debugging.h"
+#include "debug_gui.h"
 
 
 int main(void) {

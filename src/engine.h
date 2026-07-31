@@ -11,6 +11,9 @@
 
 
 typedef struct {
+    float scene_time = 0.0f;
+    float time_scale = 1.0f;
+
     glm::vec4 bg_color;
     Camera3D camera;
     Mouse mouse;

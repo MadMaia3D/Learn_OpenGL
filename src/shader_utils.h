@@ -141,7 +141,7 @@ void SetProgramUniformMaterial(const Program *p, const Material *mat) {
 }
 
 
-void SetProgramUniformLight(const Program *p, const Light *light) {
+void SetProgramUniformLightSource(const Program *p, const Light *light) {
     SetProgramUniformVec3(p, "light.position", &light->position);
     SetProgramUniformFloat(p, "light.intensity", light->intensity);
     SetProgramUniformVec3(p, "light.color", &light->color);

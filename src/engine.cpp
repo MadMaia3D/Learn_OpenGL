@@ -115,7 +115,7 @@ void SetupScene(GLFWwindow *window, SceneData *scene) {
 
     scene->material.ambient = glm::vec3(0.3f, 0.3f, 0.3f) * 0.1f;
     scene->material.diffuse = { 1.0f, 0.5f, 0.3f };
-    scene->material.specular = { 0.5f, 0.5f, 0.5f };
+    scene->material.specular = { 1.0f, 1.0f, 1.0f };
     scene->material.shininess = 50.0f;
 }
 
@@ -170,7 +170,8 @@ void ProcessInput(GLFWwindow *window, SceneData *scene, float delta_time) {
 void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
     int window_width, window_height;
     glfwGetFramebufferSize(window, &window_width, &window_height);
-    float time = glfwGetTime();
+
+    scene->scene_time += delta_time * scene->time_scale;
 
     // ------------------------- Camera -------------------------
     Camera3D *camera = &scene->camera;
@@ -184,23 +185,21 @@ void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
     glm::mat4 view_mat = glm::lookAt(camera->position, camera->target, glm::vec3(0.0, 1.0, 0.0));
     glm::mat4 proj_mat = glm::perspective(glm::radians(fov / 2), aspect_ratio, znear, zfar);
 
-    // ------------------------- Uniforms -------------------------
-    SetProgramUniformMaterial(&scene->crate_program, &scene->material);
-    SetProgramUniformLight(&scene->crate_program, &scene->light);
     // ------------------------- Cubes -------------------------
-
     glBindVertexArray(scene->VAO_crate);
     UseProgram(scene->crate_program);
     SetProgramUniformMat4(&scene->crate_program, "view", &view_mat);
     SetProgramUniformMat4(&scene->crate_program, "projection", &proj_mat);
     SetProgramUniformVec3(&scene->crate_program, "camera_position", &camera->position);
+    SetProgramUniformMaterial(&scene->crate_program, &scene->material);
+    SetProgramUniformLightSource(&scene->crate_program, &scene->light);
 
     int nCubes = sizeof(cubePositions) / sizeof(cubePositions[0]);
     for (int i = 0; i < nCubes; i++) {
         // ------------------------- Transforms -------------------------
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, cubePositions[i]);
-        float angle = 20.0f * i + time * 5.0f;
+        float angle = 20.0f * i + scene->scene_time * 10.0f;
         model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
         // ------------------------- Pass transforms to shader -------------------------
         SetProgramUniformMat4(&scene->crate_program, "model", &model);
@@ -218,5 +217,7 @@ void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
     SetProgramUniformMat4(&scene->light_program, "model", &model);
     SetProgramUniformMat4(&scene->light_program, "view", &view_mat);
     SetProgramUniformMat4(&scene->light_program, "projection", &proj_mat);
+    SetProgramUniformFloat(&scene->light_program, "light_intensity", scene->light.intensity);
+    SetProgramUniformVec3(&scene->light_program, "light_color", &scene->light.color);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
