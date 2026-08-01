@@ -135,8 +135,8 @@ void SetProgramUniformMat4(const Program *p, const char *uniform_name, const glm
 
 void SetProgramUniformMaterial(const Program *p, const Material *mat) {
     SetProgramUniformVec3(p, "material.ambient", &mat->ambient);
-    SetProgramUniformVec3(p, "material.diffuse", &mat->diffuse);
-    SetProgramUniformVec3(p, "material.specular", &mat->specular);
+    SetProgramUniformInt(p, "material.diffuse", mat->diffuse.current_slot);
+    SetProgramUniformInt(p, "material.specular", mat->specular.current_slot);
     SetProgramUniformFloat(p, "material.shininess", mat->shininess);
 }
 

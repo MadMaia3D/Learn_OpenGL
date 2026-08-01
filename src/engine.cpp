@@ -85,9 +85,12 @@ void SetupScene(GLFWwindow *window, SceneData *scene) {
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    // normals attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(5 * sizeof(float)));
+    // texture coordinates attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // normals attribute
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(5 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // ------------------------- Light VAO and VBO -------------------------
     glGenVertexArrays(1, &scene->VAO_light);
@@ -114,8 +117,8 @@ void SetupScene(GLFWwindow *window, SceneData *scene) {
     scene->light.color = { 1.0f, 1.0f, 1.0f };
 
     scene->material.ambient = glm::vec3(0.3f, 0.3f, 0.3f) * 0.1f;
-    scene->material.diffuse = { 1.0f, 0.5f, 0.3f };
-    scene->material.specular = { 1.0f, 1.0f, 1.0f };
+    LoadTexture2D(&scene->material.diffuse, 0, "textures/container2.png");
+    LoadTexture2D(&scene->material.specular, 1, "textures/container2_specular.png");
     scene->material.shininess = 50.0f;
 }
 

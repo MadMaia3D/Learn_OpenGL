@@ -2,8 +2,8 @@
 
 struct Material {
    vec3 ambient;
-   vec3 diffuse;
-   vec3 specular;
+   sampler2D diffuse;
+   sampler2D specular;
    float shininess;
 };
 
@@ -18,6 +18,7 @@ uniform Material material;
 uniform Light light;
 
 in vec3 position;
+in vec2 tex_coord;
 in vec3 normal;
 
 out vec4 FragColor;
@@ -54,9 +55,12 @@ float CalculateHighlightContribution(void) {
 
 
 void main(void) {
+   vec4 diffuse_color = texture2D(material.diffuse, tex_coord);
+   vec4 specular_color = texture2D(material.specular, tex_coord);
+
    vec3 ambient = material.ambient;
-   vec3 diffuse = CalculateDiffuseContribution() * material.diffuse * light.color * light.intensity;
-   vec3 highlight = CalculateHighlightContribution() * material.specular * light.intensity;
+   vec3 diffuse = CalculateDiffuseContribution() * diffuse_color.rgb * light.color * light.intensity;
+   vec3 highlight = CalculateHighlightContribution() * specular_color.rgb * light.intensity;
  
    FragColor = vec4(ambient + diffuse + highlight, 1.0f);
 }
