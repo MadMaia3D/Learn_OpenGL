@@ -21,8 +21,6 @@ void ImguiDebug(SceneData *scene) {
     ImGui::ColorEdit3("Light Color", glm::value_ptr(scene->light.color));
     ImGui::Separator();
     ImGui::ColorEdit3("Material Ambient", glm::value_ptr(scene->material.ambient));
-    // ImGui::ColorEdit3("Material Diffuse", glm::value_ptr(scene->material.diffuse));
-    // ImGui::ColorEdit3("Material Specular", glm::value_ptr(scene->material.specular));
     ImGui::DragFloat("Material Power", &scene->material.shininess, 0.1f, 1.0f, 300.0f);
 
     ImGui::End();

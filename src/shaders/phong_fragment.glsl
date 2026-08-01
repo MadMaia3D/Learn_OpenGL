@@ -58,7 +58,7 @@ void main(void) {
    vec4 diffuse_color = texture2D(material.diffuse, tex_coord);
    vec4 specular_color = texture2D(material.specular, tex_coord);
 
-   vec3 ambient = material.ambient;
+   vec3 ambient = material.ambient * diffuse_color.rgb;
    vec3 diffuse = CalculateDiffuseContribution() * diffuse_color.rgb * light.color * light.intensity;
    vec3 highlight = CalculateHighlightContribution() * specular_color.rgb * light.intensity;
  
