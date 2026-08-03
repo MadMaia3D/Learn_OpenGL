@@ -112,9 +112,13 @@ void SetupScene(GLFWwindow *window, SceneData *scene) {
     scene->bg_color = { 0.2f, 0.3f, 0.4f, 1.0f };
 
     // ------------------------- Look -------------------------
-    scene->light.position = { 3.0f, 2.0f, 3.0f };
-    scene->light.intensity = 15.0f;
+    scene->light.position = { 0.0f, 0.0f, 2.0f };
+    scene->light.direction = { 0.0f, -1.0f, 0.0f };
     scene->light.color = { 1.0f, 1.0f, 1.0f };
+    scene->light.intensity = 1.0f;
+    scene->light.inner_cutoff_angle = 10.0f;
+    scene->light.outer_cutoff_angle = 15.0f;
+    scene->light.type = LIGHT_TYPE_DIRECTIONAL;
 
     scene->material.ambient = glm::vec3(0.3f, 0.3f, 0.3f) * 0.1f;
     LoadTexture2D(&scene->material.diffuse, 0, "textures/container2.png");
@@ -216,11 +220,14 @@ void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
     model = glm::translate(model, scene->light.position);
     model = glm::scale(model, glm::vec3(0.1f));
 
-    UseProgram(scene->light_program);
-    SetProgramUniformMat4(&scene->light_program, "model", &model);
-    SetProgramUniformMat4(&scene->light_program, "view", &view_mat);
-    SetProgramUniformMat4(&scene->light_program, "projection", &proj_mat);
-    SetProgramUniformFloat(&scene->light_program, "light_intensity", scene->light.intensity);
-    SetProgramUniformVec3(&scene->light_program, "light_color", &scene->light.color);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    if (scene->light.type != LIGHT_TYPE_DIRECTIONAL){
+        UseProgram(scene->light_program);
+        SetProgramUniformMat4(&scene->light_program, "model", &model);
+        SetProgramUniformMat4(&scene->light_program, "view", &view_mat);
+        SetProgramUniformMat4(&scene->light_program, "projection", &proj_mat);
+        SetProgramUniformFloat(&scene->light_program, "light_intensity", scene->light.intensity);
+        SetProgramUniformVec3(&scene->light_program, "light_color", &scene->light.color);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+
 }

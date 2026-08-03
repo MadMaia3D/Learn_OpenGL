@@ -143,8 +143,12 @@ void SetProgramUniformMaterial(const Program *p, const Material *mat) {
 
 void SetProgramUniformLightSource(const Program *p, const Light *light) {
     SetProgramUniformVec3(p, "light.position", &light->position);
+    SetProgramUniformVec3(p, "light.direction", &light->direction);
     SetProgramUniformFloat(p, "light.intensity", light->intensity);
+    SetProgramUniformFloat(p, "light.inner_cutoff", glm::cos(glm::radians(light->inner_cutoff_angle)));
+    SetProgramUniformFloat(p, "light.outer_cutoff", glm::cos(glm::radians(light->outer_cutoff_angle)));
     SetProgramUniformVec3(p, "light.color", &light->color);
+    SetProgramUniformInt(p, "light.type", light->type);
 }
 
 

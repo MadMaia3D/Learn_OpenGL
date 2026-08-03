@@ -7,7 +7,7 @@
 
 int main(void) {
     GLFWwindow *window;
-    if (!CreateWindow(&window, "LearnOpenGL", 800, 600)) { return -1; }
+    if (!CreateWindow(&window, "LearnOpenGL", 1280, 720)) { return -1; }
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
