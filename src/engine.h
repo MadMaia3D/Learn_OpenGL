@@ -9,6 +9,7 @@
 #include "shader_utils.h"
 #include "texture_utils.h"
 
+#define LIGHTS_NUMBER 4
 
 typedef struct {
     float scene_time = 0.0f;
@@ -18,7 +19,8 @@ typedef struct {
     Camera3D camera;
     Mouse mouse;
 
-    Light light;
+    int total_lights = LIGHTS_NUMBER;
+    Light lights[LIGHTS_NUMBER];
     Material material;
 
     unsigned int VBO_cube;

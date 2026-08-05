@@ -141,14 +141,30 @@ void SetProgramUniformMaterial(const Program *p, const Material *mat) {
 }
 
 
-void SetProgramUniformLightSource(const Program *p, const Light *light) {
-    SetProgramUniformVec3(p, "light.position", &light->position);
-    SetProgramUniformVec3(p, "light.direction", &light->direction);
-    SetProgramUniformFloat(p, "light.intensity", light->intensity);
-    SetProgramUniformFloat(p, "light.inner_cutoff", glm::cos(glm::radians(light->inner_cutoff_angle)));
-    SetProgramUniformFloat(p, "light.outer_cutoff", glm::cos(glm::radians(light->outer_cutoff_angle)));
-    SetProgramUniformVec3(p, "light.color", &light->color);
-    SetProgramUniformInt(p, "light.type", light->type);
+void SetProgramUniformLightSource(const Program *p, const Light *lights, int total_lights) {
+    char buffer[255];
+    for (int i = 0; i < total_lights; i++) {
+        snprintf(buffer, 250, "lights[%d].position", i);
+        SetProgramUniformVec3(p, buffer, &lights[i].position);
+        
+        snprintf(buffer, 250, "lights[%d].direction", i);
+        SetProgramUniformVec3(p, buffer, &lights[i].direction);
+        
+        snprintf(buffer, 250, "lights[%d].intensity", i);
+        SetProgramUniformFloat(p, buffer, lights[i].intensity);
+        
+        snprintf(buffer, 250, "lights[%d].inner_cutoff", i);
+        SetProgramUniformFloat(p, buffer, glm::cos(glm::radians(lights[i].inner_cutoff_angle)));
+        
+        snprintf(buffer, 250, "lights[%d].outer_cutoff", i);
+        SetProgramUniformFloat(p, buffer, glm::cos(glm::radians(lights[i].outer_cutoff_angle)));
+        
+        snprintf(buffer, 250, "lights[%d].color", i);
+        SetProgramUniformVec3(p, buffer, &lights[i].color);
+        
+        snprintf(buffer, 250, "lights[%d].type", i);
+        SetProgramUniformInt(p, buffer, lights[i].type);
+    }
 }
 
 

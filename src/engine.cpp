@@ -112,13 +112,15 @@ void SetupScene(GLFWwindow *window, SceneData *scene) {
     scene->bg_color = { 0.2f, 0.3f, 0.4f, 1.0f };
 
     // ------------------------- Look -------------------------
-    scene->light.position = { 0.0f, 0.0f, 2.0f };
-    scene->light.direction = { 0.0f, -1.0f, 0.0f };
-    scene->light.color = { 1.0f, 1.0f, 1.0f };
-    scene->light.intensity = 1.0f;
-    scene->light.inner_cutoff_angle = 10.0f;
-    scene->light.outer_cutoff_angle = 15.0f;
-    scene->light.type = LIGHT_TYPE_DIRECTIONAL;
+    scene->lights[0].intensity = 1.0f;
+    for (int i = 0; i < 4; i++) {
+        scene->lights[i].position = { 0.0f, 0.0f, 2.0f };
+        scene->lights[i].direction = { 0.0f, -1.0f, 0.0f };
+        scene->lights[i].color = { 1.0f, 1.0f, 1.0f };
+        scene->lights[i].inner_cutoff_angle = 10.0f;
+        scene->lights[i].outer_cutoff_angle = 15.0f;
+        scene->lights[i].type = LIGHT_TYPE_DIRECTIONAL;
+    }
 
     scene->material.ambient = glm::vec3(0.3f, 0.3f, 0.3f);
     LoadTexture2D(&scene->material.diffuse, 0, "textures/container2.png");
@@ -199,7 +201,7 @@ void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
     SetProgramUniformMat4(&scene->crate_program, "projection", &proj_mat);
     SetProgramUniformVec3(&scene->crate_program, "camera_position", &camera->position);
     SetProgramUniformMaterial(&scene->crate_program, &scene->material);
-    SetProgramUniformLightSource(&scene->crate_program, &scene->light);
+    SetProgramUniformLightSource(&scene->crate_program, scene->lights, LIGHTS_NUMBER);
 
     int nCubes = sizeof(cubePositions) / sizeof(cubePositions[0]);
     for (int i = 0; i < nCubes; i++) {
@@ -216,18 +218,27 @@ void RenderSceneFrame(GLFWwindow *window, SceneData *scene, float delta_time) {
 
     // ------------------------- Render Light -------------------------
     glBindVertexArray(scene->VAO_light);
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, scene->light.position);
-    model = glm::scale(model, glm::vec3(0.1f));
+    for (int i = 0; i < scene->total_lights; i++) {
+        Light *light = &scene->lights[i];
+        if (light->attach_to_camera) {
+            light->position = scene->camera.position;
+            glm::vec3 world_up(0.0f, 1.0f, 0.0f);
+            glm::vec3 camera_z = glm::normalize(camera->position - camera->target);
+            light->direction = -camera_z;
 
-    if (scene->light.type != LIGHT_TYPE_DIRECTIONAL){
-        UseProgram(scene->light_program);
-        SetProgramUniformMat4(&scene->light_program, "model", &model);
-        SetProgramUniformMat4(&scene->light_program, "view", &view_mat);
-        SetProgramUniformMat4(&scene->light_program, "projection", &proj_mat);
-        SetProgramUniformFloat(&scene->light_program, "light_intensity", scene->light.intensity);
-        SetProgramUniformVec3(&scene->light_program, "light_color", &scene->light.color);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        } else if (light->type != LIGHT_TYPE_DIRECTIONAL) {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, light->position);
+            model = glm::scale(model, glm::vec3(0.1f));
+
+            UseProgram(scene->light_program);
+            SetProgramUniformMat4(&scene->light_program, "model", &model);
+            SetProgramUniformMat4(&scene->light_program, "view", &view_mat);
+            SetProgramUniformMat4(&scene->light_program, "projection", &proj_mat);
+            SetProgramUniformFloat(&scene->light_program, "light_intensity", light->intensity);
+            SetProgramUniformVec3(&scene->light_program, "light_color", &light->color);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
     }
 
 }

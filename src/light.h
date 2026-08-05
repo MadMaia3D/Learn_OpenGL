@@ -18,6 +18,7 @@ typedef struct {
     float inner_cutoff_angle;
     float outer_cutoff_angle;
     int type;
+    bool attach_to_camera;
 } Light;
 
 

@@ -27,7 +27,7 @@ struct Light {
 
 uniform vec3 camera_position;
 uniform Material material;
-uniform Light light;
+uniform Light lights[4];
 
 
 in vec3 position;
@@ -53,28 +53,31 @@ void main(void) {
 
     vec3 final_color = ambient;
 
-    vec3 base_diffuse = diffuse_color.rgb * light.color * light.intensity;
-    vec3 base_specular = specular_color.rgb * light.intensity;
+    for (int i = 0; i < 4; i++) {
+    vec3 base_diffuse = diffuse_color.rgb * lights[i].color * lights[i].intensity;
+    vec3 base_specular = specular_color.rgb * lights[i].intensity;
 
     float attenuation = 0.0f;
     float diffuse_contribution = 0.0f;
     float specular_contribution = 0.0f;
 
-    if (light.type == LIGHT_TYPE_POINT) {
-        diffuse_contribution = Get_Point_Light_Diffuse_Contribution(light);
-        specular_contribution = Get_Point_Light_Specular_Contribution(light);
-        attenuation = CalculateAttenuation(light, 0.0f, 0.5f, 0.5f);
-    } else if (light.type == LIGHT_TYPE_DIRECTIONAL) {
-        diffuse_contribution = Get_Directional_Light_Diffuse_Contribution(light);
-        specular_contribution = Get_Directional_Light_Specular_Contribution(light);
+    if (lights[i].type == LIGHT_TYPE_POINT) {
+        diffuse_contribution = Get_Point_Light_Diffuse_Contribution(lights[i]);
+        specular_contribution = Get_Point_Light_Specular_Contribution(lights[i]);
+        attenuation = CalculateAttenuation(lights[i], 0.0f, 0.5f, 0.5f);
+    } else if (lights[i].type == LIGHT_TYPE_DIRECTIONAL) {
+        diffuse_contribution = Get_Directional_Light_Diffuse_Contribution(lights[i]);
+        specular_contribution = Get_Directional_Light_Specular_Contribution(lights[i]);
         attenuation = 1.0f;
-    } else if (light.type == LIGHT_TYPE_SPOT) {
-        diffuse_contribution = Get_Spotlight_Diffuse_Contribution(light);
-        specular_contribution = Get_Point_Light_Specular_Contribution(light) * diffuse_contribution;
-        attenuation = CalculateAttenuation(light, 0.0f, 0.5f, 0.5f);
+    } else if (lights[i].type == LIGHT_TYPE_SPOT) {
+        diffuse_contribution = Get_Spotlight_Diffuse_Contribution(lights[i]);
+        specular_contribution = Get_Point_Light_Specular_Contribution(lights[i]) * diffuse_contribution;
+        attenuation = CalculateAttenuation(lights[i], 0.0f, 0.5f, 0.5f);
     }
         final_color += base_diffuse * diffuse_contribution * attenuation;
         final_color += base_specular * specular_contribution * attenuation;
+    }
+
 
     FragColor = vec4(final_color, 1.0f);
 }
