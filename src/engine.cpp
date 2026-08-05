@@ -120,7 +120,7 @@ void SetupScene(GLFWwindow *window, SceneData *scene) {
     scene->light.outer_cutoff_angle = 15.0f;
     scene->light.type = LIGHT_TYPE_DIRECTIONAL;
 
-    scene->material.ambient = glm::vec3(0.3f, 0.3f, 0.3f) * 0.1f;
+    scene->material.ambient = glm::vec3(0.3f, 0.3f, 0.3f);
     LoadTexture2D(&scene->material.diffuse, 0, "textures/container2.png");
     LoadTexture2D(&scene->material.specular, 1, "textures/container2_specular.png");
     scene->material.shininess = 50.0f;
