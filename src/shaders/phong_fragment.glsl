@@ -135,9 +135,8 @@ float Get_Spotlight_Diffuse_Contribution(Light light) {
     vec3 light_dir = normalize(light.position - position);
     float light_direction_contribution = max( 0.0f, dot(normal, light_dir));
 
-    float spotlight_dot = dot(light_dir, -light.direction);
+    float spotlight_dot = dot(light_dir, -normalize(light.direction));
     float spot_contribution = smoothstep(light.outer_cutoff, light.inner_cutoff, spotlight_dot);
 
     return spot_contribution * light_direction_contribution;
-    
 }
